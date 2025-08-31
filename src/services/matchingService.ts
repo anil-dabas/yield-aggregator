@@ -1,0 +1,36 @@
+import { YieldOpportunity, UserProfile, MatchResponse } from '../types';
+import { ServiceError, isCustomError } from '../errors';
+
+export class MatchingService {
+  static matchOpportunities(opportunities: YieldOpportunity[], profile: UserProfile): MatchResponse {
+    try {
+      const matched = opportunities.filter((opp) => {
+        const balance = parseFloat(profile.walletBalance[opp.asset] || '0');
+        if (isNaN(balance)) {
+          console.warn(`[${new Date().toISOString()}] Invalid balance for asset ${opp.asset} in user profile`);
+          return false;
+        }
+        const minInvestment = 0.01; // Assume small min investment
+        const isSufficientBalance = balance >= minInvestment;
+        const isRiskAcceptable = opp.riskScore <= profile.riskTolerance;
+        const isLiquiditySuitable =
+            profile.investmentHorizon < 30 ? opp.liquidity === 'liquid' : true;
+        const totalBalance = Object.values(profile.walletBalance).reduce((sum, val) => {
+          const num = parseFloat(val);
+          return isNaN(num) ? sum : sum + num;
+        }, 0);
+        const isAllocationReasonable = totalBalance > 0
+            ? (minInvestment / totalBalance) * 100 <= profile.maxAllocationPct
+            : false;
+
+        return isSufficientBalance && isRiskAcceptable && isLiquiditySuitable && isAllocationReasonable;
+      });
+
+      return { matchedOpportunities: matched };
+    } catch (error: unknown) {
+      const errorMsg = isCustomError(error) ? error.message : 'Unknown error';
+      console.error(`[${new Date().toISOString()}] Failed to match opportunities: ${errorMsg}`);
+      throw new ServiceError('Failed to match opportunities', 'MATCHING_ERROR', { originalError: error });
+    }
+  }
+}
