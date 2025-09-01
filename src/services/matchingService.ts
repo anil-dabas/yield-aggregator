@@ -1,9 +1,14 @@
 import { YieldOpportunity, UserProfile, MatchResponse } from '../types';
 import { ServiceError, isCustomError } from '../errors';
-import {ERROR_MESSAGES} from "../constants";
+import { ERROR_MESSAGES } from '../constants';
 
 export class MatchingService {
-  static matchOpportunities(opportunities: YieldOpportunity[], profile: UserProfile): MatchResponse {
+  static matchOpportunities(
+      opportunities: YieldOpportunity[],
+      profile: UserProfile,
+      page: number = 1,
+      pageSize: number = 10
+  ): MatchResponse {
     try {
       const matched = opportunities.filter((opp) => {
         const balance = parseFloat(profile.walletBalance[opp.asset] || '0');
@@ -27,7 +32,13 @@ export class MatchingService {
         return isSufficientBalance && isRiskAcceptable && isLiquiditySuitable && isAllocationReasonable;
       });
 
-      return { matchedOpportunities: matched };
+      const totalItems = matched.length;
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const currentPage = Math.max(1, Math.min(page, totalPages));
+      const start = (currentPage - 1) * pageSize;
+      const paginatedMatched = matched.slice(start, start + pageSize);
+
+      return { matchedOpportunities: paginatedMatched, totalItems, totalPages, currentPage };
     } catch (error: unknown) {
       const errorMsg = isCustomError(error) ? error.message : 'Unknown error';
       console.error(`[${new Date().toISOString()}] Failed to match opportunities: ${errorMsg}`);

@@ -36,4 +36,7 @@ export interface UserProfile {
 
 export interface MatchResponse {
   matchedOpportunities: YieldOpportunity[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
 }

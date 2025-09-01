@@ -4,9 +4,20 @@ import { YieldOpportunity } from '../types';
 interface OpportunitiesTableProps {
   opportunities: YieldOpportunity[];
   title: string;
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  onPageChange: (page: number) => void;
 }
 
-const OpportunitiesTable: React.FC<OpportunitiesTableProps> = ({ opportunities, title }) => {
+const OpportunitiesTable: React.FC<OpportunitiesTableProps> = ({
+                                                                 opportunities,
+                                                                 title,
+                                                                 totalItems,
+                                                                 totalPages,
+                                                                 currentPage,
+                                                                 onPageChange,
+                                                               }) => {
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,7 +38,7 @@ const OpportunitiesTable: React.FC<OpportunitiesTableProps> = ({ opportunities, 
 
       const onMouseMove = (moveEvent: MouseEvent) => {
         const delta = moveEvent.clientX - startX;
-        const newWidth = Math.max(100, startWidth + delta); // Minimum width 100px
+        const newWidth = Math.max(100, startWidth + delta);
         const newNextWidth = Math.max(100, nextWidth - delta);
         grid.style.gridTemplateColumns = Array.from(headers)
         .map((_, i) =>
@@ -90,6 +101,25 @@ const OpportunitiesTable: React.FC<OpportunitiesTableProps> = ({ opportunities, 
                 <div>{new Date(opp.updatedAt).toLocaleString()}</div>
               </div>
           ))}
+        </div>
+        <div className="pagination">
+          <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="button"
+          >
+            Previous
+          </button>
+          <span>
+          Page {currentPage} of {totalPages} ({totalItems} items)
+        </span>
+          <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="button"
+          >
+            Next
+          </button>
         </div>
       </div>
   );

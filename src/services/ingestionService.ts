@@ -4,8 +4,9 @@ import Redis from 'ioredis';
 import { providerConfigs } from '../configs/providerConfigs';
 import { projectConfig } from '../configs/projectConfig';
 import { Opportunity } from '../models/opportunity';
-import {OpportunityCategory, YieldOpportunity} from '../types';
+import { OpportunityCategory, YieldOpportunity } from '../types';
 import { ProviderFetchError, KafkaConnectionError, RedisConnectionError, isCustomError } from '../errors';
+import { PAGINATION_DEFAULTS } from '../constants';
 
 export class IngestionService {
   private kafka: Kafka;
@@ -132,7 +133,7 @@ export class IngestionService {
       const fetchAndPublish = async () => {
         try {
           const newOpportunities = await this.fetchProviderData(config);
-          const currentOpportunities = await this.getOpportunities();
+          const { opportunities: currentOpportunities } = await this.getOpportunities({ page: 1, pageSize: Number.MAX_SAFE_INTEGER });
           const updatedOpportunities = [
             ...currentOpportunities.filter((opp) => opp.provider !== config.name),
             ...newOpportunities,
@@ -166,20 +167,27 @@ export class IngestionService {
     }
   }
 
-  async getOpportunities(): Promise<YieldOpportunity[]> {
+  async getOpportunities({ page = PAGINATION_DEFAULTS.PAGE, pageSize = PAGINATION_DEFAULTS.PAGE_SIZE } = {}): Promise<{
+    opportunities: YieldOpportunity[];
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
     try {
       const keys = await this.redis.keys('opportunity:*');
       if (keys.length === 0) {
         console.log(`[${new Date().toISOString()}] No opportunities in Redis`);
-        return [];
+        return { opportunities: [], totalItems: 0, totalPages: 0, currentPage: page };
       }
+
       const pipeline = this.redis.pipeline();
       keys.forEach((key) => pipeline.hgetall(key));
       const results = await pipeline.exec();
       if (!results) {
         console.log(`[${new Date().toISOString()}] No results from Redis pipeline`);
-        return [];
+        return { opportunities: [], totalItems: 0, totalPages: 0, currentPage: page };
       }
+
       const opportunities: YieldOpportunity[] = results
       .filter((result): result is [null, Record<string, string>] => result !== null && result[0] === null && !!result[1])
       .map(([_, data]) => ({
@@ -193,13 +201,21 @@ export class IngestionService {
         liquidity: data.liquidity as 'liquid' | 'locked',
         riskScore: parseInt(data.riskScore),
         updatedAt: data.updatedAt,
-      }));
-      console.log(`[${new Date().toISOString()}] Served ${opportunities.length} opportunities from Redis`);
-      return opportunities;
+      }))
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+      const totalItems = opportunities.length;
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const currentPage = Math.max(1, Math.min(page, totalPages));
+      const start = (currentPage - 1) * pageSize;
+      const paginatedOpportunities = opportunities.slice(start, start + pageSize);
+
+      console.log(`[${new Date().toISOString()}] Served ${paginatedOpportunities.length} opportunities from Redis (page ${currentPage}, total ${totalItems})`);
+      return { opportunities: paginatedOpportunities, totalItems, totalPages, currentPage };
     } catch (error: unknown) {
       const errorMsg = isCustomError(error) ? error.message : 'Unknown error';
       console.error(`[${new Date().toISOString()}] Failed to get opportunities from Redis: ${errorMsg}`);
-      return [];
+      return { opportunities: [], totalItems: 0, totalPages: 0, currentPage: page };
     }
   }
 }

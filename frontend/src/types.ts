@@ -3,32 +3,26 @@ export interface YieldOpportunity {
   name: string;
   provider: string;
   asset: string;
-  chain: string;
-  apr?: number;
+  chain: 'ethereum' | 'solana';
+  apr: number | null;
   category: string;
-  liquidity: string;
+  liquidity: 'liquid' | 'locked';
   riskScore: number;
   updatedAt: string;
 }
 
 export interface UserProfile {
   walletBalance: {
-    ETH: string;
-    SOL: string;
-    USDC: string;
+    [key: string]: string;
   };
   riskTolerance: number;
   maxAllocationPct: number;
   investmentHorizon: number;
 }
 
-export interface HardcodedUser {
-  username: string;
-  password: string;
-  walletAddress: string;
-  walletBalance: {
-    ETH: string;
-    SOL: string;
-    USDC: string;
-  };
+export interface MatchResponse {
+  matchedOpportunities: YieldOpportunity[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
 }

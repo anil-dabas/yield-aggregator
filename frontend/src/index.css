@@ -100,6 +100,11 @@ h2 {
   transition: background-color 0.2s;
 }
 
+.button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
 .button.connect {
   background-color: #16a34a;
   color: white;
@@ -110,7 +115,7 @@ h2 {
   color: white;
 }
 
-.button:hover {
+.button:hover:not(:disabled) {
   opacity: 0.9;
 }
 
@@ -232,4 +237,13 @@ h2 {
 
 .resize-handle:hover {
   background-color: #1e40af;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  font-size: 1rem;
 }

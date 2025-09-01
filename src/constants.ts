@@ -14,3 +14,8 @@ export const ERROR_MESSAGES = {
   INVALID_PAGINATION_PARAMS: 'Invalid pagination parameters',
   SERVER_STARTUP_FAILED: 'Server startup failed',
 } as const;
+
+export const PAGINATION_DEFAULTS = {
+  PAGE_SIZE: 10,
+  PAGE: 1,
+}

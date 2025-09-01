@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { YieldOpportunity, UserProfile } from './types';
+import { YieldOpportunity, UserProfile, MatchResponse } from './types';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -17,19 +17,28 @@ export const checkHealth = async (): Promise<{ status: string }> => {
   }
 };
 
-export const fetchOpportunities = async (): Promise<YieldOpportunity[]> => {
+export const fetchOpportunities = async (page: number = 1, pageSize: number = 10): Promise<{
+  opportunities: YieldOpportunity[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+}> => {
   try {
-    const response = await api.get('/api/earn/opportunities');
+    const response = await api.get('/api/earn/opportunities', {
+      params: { page, pageSize },
+    });
     return response.data;
   } catch (error) {
     throw handleError(error);
   }
 };
 
-export const matchOpportunities = async (profile: UserProfile): Promise<YieldOpportunity[]> => {
+export const matchOpportunities = async (profile: UserProfile, page: number = 1, pageSize: number = 10): Promise<MatchResponse> => {
   try {
-    const response = await api.post('/api/earn/opportunities/match', profile);
-    return response.data.matchedOpportunities;
+    const response = await api.post('/api/earn/opportunities/match', profile, {
+      params: { page, pageSize },
+    });
+    return response.data;
   } catch (error) {
     throw handleError(error);
   }
