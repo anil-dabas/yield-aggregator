@@ -12,7 +12,7 @@ A TypeScript/Express service for aggregating yield opportunities from DeFi provi
    1. Go to yield-aggregator/frontend directory: `cd yield-aggregator/frontend`
    2. run `npm install` to install dependencies.
    3. run `npm run serve` to start the frontend. 
-   4. Access the app at `http://localhost:3000`.
+   4. Access the app at `http://localhost:3001`.
 
 ## API Endpoints
 
@@ -33,7 +33,7 @@ A TypeScript/Express service for aggregating yield opportunities from DeFi provi
 ## How to Run the application 
 
 1. After setup 
-2. go to `http://localhost:3000`.
+2. go to `http://localhost:3001`.
 3. On the All Opportunities page, you can see all the yield opportunities.
 4. Click On Connect wallet
 5. login with the user as `user1` and password as `password1`
