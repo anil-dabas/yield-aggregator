@@ -4,6 +4,7 @@ import { projectConfig } from './configs/projectConfig';
 import apiRoutes from './routes/api';
 import { IngestionService } from './services/ingestionService';
 import { ServiceError, isCustomError } from './errors';
+import {ERROR_MESSAGES} from "./constants";
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.listen(projectConfig.port, async () => {
   } catch (error: unknown) {
     const errorMsg = isCustomError(error) ? error.message : 'Unknown error';
     console.error(`[${new Date().toISOString()}] Server startup failed: ${errorMsg}`);
-    throw new ServiceError('Server startup failed', 'STARTUP_ERROR', { originalError: error });
+    throw new ServiceError(ERROR_MESSAGES.SERVER_STARTUP_FAILED, 'STARTUP_ERROR', { originalError: error });
   }
 });
 

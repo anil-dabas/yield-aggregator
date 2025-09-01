@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchOpportunities } from '../api';
 import { YieldOpportunity } from '../types';
 import OpportunitiesTable from './OpportunitiesTable';
+import {ERROR_MESSAGES} from "../../../src/constants.ts";
 
 const AllOpportunities: React.FC = () => {
   const [opportunities, setOpportunities] = useState<YieldOpportunity[]>([]);
@@ -16,7 +17,7 @@ const AllOpportunities: React.FC = () => {
         setOpportunities(data);
         setError(null);
       } catch (err: any) {
-        setError(err.message || 'Failed to fetch opportunities');
+        setError(err.message || ERROR_MESSAGES.FAILED_TO_FETCH_OPPORTUNITIES);
       } finally {
         setLoading(false);
       }

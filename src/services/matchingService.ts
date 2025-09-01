@@ -1,5 +1,6 @@
 import { YieldOpportunity, UserProfile, MatchResponse } from '../types';
 import { ServiceError, isCustomError } from '../errors';
+import {ERROR_MESSAGES} from "../constants";
 
 export class MatchingService {
   static matchOpportunities(opportunities: YieldOpportunity[], profile: UserProfile): MatchResponse {
@@ -30,7 +31,7 @@ export class MatchingService {
     } catch (error: unknown) {
       const errorMsg = isCustomError(error) ? error.message : 'Unknown error';
       console.error(`[${new Date().toISOString()}] Failed to match opportunities: ${errorMsg}`);
-      throw new ServiceError('Failed to match opportunities', 'MATCHING_ERROR', { originalError: error });
+      throw new ServiceError(ERROR_MESSAGES.FAILED_TO_MATCH_OPPORTUNITIES, 'MATCHING_ERROR', { originalError: error });
     }
   }
 }
