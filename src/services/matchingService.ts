@@ -1,22 +1,22 @@
 import { YieldOpportunity, UserProfile, MatchResponse } from '../types';
 import { ServiceError, isCustomError } from '../errors';
-import { ERROR_MESSAGES } from '../constants';
+import {ERROR_MESSAGES, PAGINATION_DEFAULTS} from '../constants';
 
 export class MatchingService {
   static matchOpportunities(
       opportunities: YieldOpportunity[],
       profile: UserProfile,
-      page: number = 1,
-      pageSize: number = 10
+      page: number = PAGINATION_DEFAULTS.PAGE,
+      pageSize: number = PAGINATION_DEFAULTS.PAGE_SIZE
   ): MatchResponse {
     try {
       const matched = opportunities.filter((opp) => {
         const balance = parseFloat(profile.walletBalance[opp.asset] || '0');
-        if (isNaN(balance)) {
+        if (isNaN(balance) ) {
           console.warn(`[${new Date().toISOString()}] Invalid balance for asset ${opp.asset} in user profile`);
           return false;
         }
-        const minInvestment = 0.01; // Assume small min investment
+        const minInvestment = 0.01;
         const isSufficientBalance = balance >= minInvestment;
         const isRiskAcceptable = opp.riskScore <= profile.riskTolerance;
         const isLiquiditySuitable =
